@@ -1,14 +1,20 @@
 @echo off
+setlocal EnableDelayedExpansion
 
-set DESTINATION_DIR=D:\ITU\S4\Web_Service\framework\test_framework\WEB-INF\lib
-set LIB_SERVLET=D:\apache-tomcat-9.0.74-windows-x64\apache-tomcat-9.0.74\lib
+rem Chemin du dossier source :
+set "sourceDir=D:\Fianarana\Semestre4\Mr Vahatriniaina\Framework\build\classes"
 
-if not exist "%DESTINATION_DIR%" (
-    mkdir "%DESTINATION_DIR%"
-)
-cd src
-javac -cp "%LIB_SERVLET%/*" -d ..\..\classes *.java
+rem Chemin du dossier de destination :
+set "destDir=D:\Fianarana\Semestre4\Mr Vahatriniaina\Framework_ITU_Test\lib"
 
-jar -cf ..\..\libFrameWork\framework.jar -C ..\..\classes .
+rem Nom du fichier JAR :
+set "jarName=Framework.jar"
 
-copy ..\..\libFrameWork\framework.jar "%DESTINATION_DIR%"
+rem Commande pour créer le fichier JAR :
+"C:\Program Files\Java\jdk-19\bin\jar.exe" cvf "!destDir!\!jarName!" -C "!sourceDir!" .
+
+rem Fin du script
+echo Création du fichier JAR terminée.
+echo Fichier JAR déplacé vers le dossier de destination.
+
+pause
