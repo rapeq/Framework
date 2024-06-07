@@ -1,5 +1,6 @@
 package main.controller;
 
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +14,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import main.modelView.ModelView;
 
 public class ControllerUtil {
     public static List<String> scanControllers(String packageName) throws IOException, ClassNotFoundException {
@@ -130,8 +132,6 @@ public class ControllerUtil {
                 for (Map.Entry<String, String> innerEntry : mapx.entrySet()) {
                     String controllerNamex = innerEntry.getKey();
                     String methodName = innerEntry.getValue();
-                    out.println("URL : " + url);
-                    out.println("   Controller : " + controllerNamex + ", Method : " + methodName);
                     String fullClass = scanPackage + "." + controllerNamex;
                     invokeMethod(fullClass, methodName, request, response, out);
                     methodFound = true;
@@ -153,14 +153,11 @@ public class ControllerUtil {
 
     private static void invokeMethod(String controllerName, String methodName, HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
         try {
-            // Obtenir la classe du contrôleur
             Class<?> controllerClass = Class.forName(controllerName);
-            // Créer une instance du contrôleur
             Object controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
-
-            // Obtenir la méthode à appeler avec ou sans paramètres
             Method method;
             boolean hasParams;
+
             try {
                 method = controllerClass.getMethod(methodName, HttpServletRequest.class, HttpServletResponse.class);
                 hasParams = true;
@@ -176,15 +173,22 @@ public class ControllerUtil {
                 result = method.invoke(controllerInstance);
             }
 
-            // Si le retour est une String, l'écrire dans la réponse
-            if (result instanceof String) {
+            if (result instanceof ModelView) {
+                ModelView modelView = (ModelView) result;
+                for (String key : modelView.getData().keySet()) {
+                    request.setAttribute(key, modelView.getData().get(key));
+                }
+
+                String url = modelView.getUrl();
+                RequestDispatcher dispatcher = request.getRequestDispatcher(url);
+                dispatcher.forward(request, response);
+            } else if (result instanceof String) {
                 out.println((String) result);
-            } else {
-                out.println("Retour non String");
             }
         } catch (Exception e) {
             e.printStackTrace();
             out.println("Exception: " + e.getMessage());
         }
     }
+
 }
